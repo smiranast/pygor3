@@ -277,6 +277,10 @@ class IgorTask:
             "igor_fln_output_pgen": self.igor_fln_output_pgen,
             "igor_fln_output_scenarios": self.igor_fln_output_scenarios,
             "igor_fln_output_coverage": self.igor_fln_output_coverage,
+			
+			"igor_thr_align_V": self.igor_thr_align_V,
+            "igor_thr_align_D": self.igor_thr_align_D,
+            "igor_thr_align_J": self.igor_thr_align_J,
 
             "igor_fln_generated_realizations_werr": self.igor_fln_generated_realizations_werr,
             "igor_fln_generated_seqs_werr": self.igor_fln_generated_seqs_werr,
@@ -549,7 +553,16 @@ class IgorTask:
         if os.path.isfile(self.genomes.fln_J_gene_CDR3_anchors):
             cmd = cmd + " --J " + self.genomes.fln_J_gene_CDR3_anchors
 
-        cmd = cmd + " -align " + command_from_dict_options(self.igor_align_dict_options)
+        cmd = cmd + " -align "
+		# Add thresholds
+		cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
+		cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
+		cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
+		cmd = cmd + command_from_dict_options(self.igor_align_dict_options)
+		
+
+		cmd = cmd + " -set_CDR3_anchors "
+		
         #return cmd
         print(cmd)
         cmd_stdout = run_command_print(cmd)
