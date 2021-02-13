@@ -126,7 +126,10 @@ class IgorTask:
                  igor_fln_generated_realizations_werr=None,
                  igor_fln_generated_seqs_werr=None,
                  igor_fln_generation_info=None,
-                 igor_fln_db=None
+                 igor_fln_db=None,
+                 igor_thr_align_V=None,
+                 igor_thr_align_D=None,
+                 igor_thr_align_J=None
                  ):
         # To execute IGoR externally
         self.igor_exec_path = igor_exec_path
@@ -185,6 +188,10 @@ class IgorTask:
         # almost each of these files correspond to a sql table
         self.batch_data = igor_batch_dict
 
+		# alignment thresholds for each gene segment
+        self.igor_thr_align_V=igor_thr_align_V
+        self.igor_thr_align_D=igor_thr_align_D
+        self.igor_thr_align_J=igor_thr_align_J
 
         self.igor_db = IgorSqliteDB()
         self.igor_db_bs = None
