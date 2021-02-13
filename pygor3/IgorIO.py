@@ -554,14 +554,12 @@ class IgorTask:
             cmd = cmd + " --J " + self.genomes.fln_J_gene_CDR3_anchors
 
         cmd = cmd + " -align "
-	    # Add thresholds
-	    cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
-	    cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
-	    cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
-	    cmd = cmd + command_from_dict_options(self.igor_align_dict_options)
-		
-	    cmd = cmd + " -set_CDR3_anchors "
-		
+        # Add thresholds
+        cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
+        cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
+        cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
+        cmd = cmd + command_from_dict_options(self.igor_align_dict_options)
+	    
         #return cmd
         print(cmd)
         cmd_stdout = run_command_print(cmd)
