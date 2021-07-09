@@ -130,9 +130,9 @@ class IgorTask:
                  igor_thr_align_V=None,
                  igor_thr_align_D=None,
                  igor_thr_align_J=None,
-		 igor_best_align_only_v=False,
-		 best_gene_only_v=False
+		 igor_incomplete=False
                  ):
+
         # To execute IGoR externally
         self.igor_exec_path = igor_exec_path
         self.igor_datadir = igor_datadir
@@ -287,9 +287,8 @@ class IgorTask:
             "igor_thr_align_V": self.igor_thr_align_V,
             "igor_thr_align_D": self.igor_thr_align_D,
             "igor_thr_align_J": self.igor_thr_align_J,
-            "igor_best_align_only_v": self.igor_best_align_only_v,
-            "igor_best_gene_only_v": self.best_gene_only_v,
-
+            "igor_incomplete": self.igor_incomplete,
+		
             "igor_fln_generated_realizations_werr": self.igor_fln_generated_realizations_werr,
             "igor_fln_generated_seqs_werr": self.igor_fln_generated_seqs_werr,
             "igor_fln_generation_info": self.igor_fln_generation_info,
@@ -564,10 +563,10 @@ class IgorTask:
         cmd = cmd + " -align "
         # Add thresholds
         cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
-	cmd = cmd + " ---best_align_only " + str(self.igor_best_align_only_v)
-	cmd = cmd + " ---best_gene_only " + str(self.best_gene_only_v)
         cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
         cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
+	if igortask.igor_incomplete:
+		cmd = cmd + " --not_infer d_gene"
         cmd = cmd + command_from_dict_options(self.igor_align_dict_options)
 	    
         #return cmd
