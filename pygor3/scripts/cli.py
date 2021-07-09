@@ -317,10 +317,7 @@ def run_infer(igor_read_seqs, output_fln_prefix,
     igortask.igor_thr_align_D=igor_thr_align_D
     igortask.igor_thr_align_J=igor_thr_align_J
     
-    if incomplete:
-        igortask.igor_thr_align_V=0
-        igortask.igor_best_align_only_v=True
-        igortask.best_gene_only_v=True
+    igortask.igor_incomplete=incomplete
 
     Q_species_chain = (not (igor_species is None) and not (igor_chain is None))
     Q_model_files = (not (igor_model_parms is None) and not (igor_model_marginals is None))
