@@ -274,6 +274,11 @@ def run_align(igor_read_seqs,
               metavar="<int>",
               help="Threshold for J gene alignement")
 
+# Special parameter for incomplete recombinations model inference
+@click.option("--incomplete", "incomplete", default=False,
+              metavar="<bool>",
+              help="Train the model for incomplete D-J recombination")
+
 @click.option("-w", "--set_wd", "igor_wd", help="Sets the working directory to path", default='./', show_default=True)
 # To load all data files use batchname
 @click.option("-b", "--set_batch", "igor_batch", default=None,
@@ -285,7 +290,7 @@ def run_align(igor_read_seqs,
 def run_infer(igor_read_seqs, output_fln_prefix,
     igor_species, igor_chain, igor_model, igor_model_path, igor_path_ref_genome, igor_wd, igor_batch, igor_fln_db,
     fln_genomicVs, fln_genomicDs, fln_genomicJs, fln_V_gene_CDR3_anchors, fln_J_gene_CDR3_anchors,
-    igor_thr_align_V, igor_thr_align_D, igor_thr_align_J):
+    igor_thr_align_V, igor_thr_align_D, igor_thr_align_J, incomplete):
     """IGoR's call to infer model from input sequences and model"""
 
     from pygor3 import IgorTask
@@ -311,6 +316,11 @@ def run_infer(igor_read_seqs, output_fln_prefix,
     igortask.igor_thr_align_V=igor_thr_align_V
     igortask.igor_thr_align_D=igor_thr_align_D
     igortask.igor_thr_align_J=igor_thr_align_J
+    
+    if incomplete:
+        igortask.igor_thr_align_V=0
+        igortask.igor_best_align_only_v=True
+        igortask.best_gene_only_v=True
 
     Q_species_chain = (not (igor_species is None) and not (igor_chain is None))
     Q_model_files = (not (igor_model_parms is None) and not (igor_model_marginals is None))
