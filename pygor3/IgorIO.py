@@ -130,8 +130,8 @@ class IgorTask:
                  igor_thr_align_V=None,
                  igor_thr_align_D=None,
                  igor_thr_align_J=None,
-		 igor_best_align_only_v=None,
-		 best_gene_only_v=None
+		 igor_best_align_only_v=False,
+		 best_gene_only_v=False
                  ):
         # To execute IGoR externally
         self.igor_exec_path = igor_exec_path
