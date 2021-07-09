@@ -129,7 +129,9 @@ class IgorTask:
                  igor_fln_db=None,
                  igor_thr_align_V=None,
                  igor_thr_align_D=None,
-                 igor_thr_align_J=None
+                 igor_thr_align_J=None,
+		 igor_best_align_only_v=None,
+		 best_gene_only_v=None
                  ):
         # To execute IGoR externally
         self.igor_exec_path = igor_exec_path
@@ -188,10 +190,14 @@ class IgorTask:
         # almost each of these files correspond to a sql table
         self.batch_data = igor_batch_dict
 
-		# alignment thresholds for each gene segment
+	# alignment thresholds for each gene segment
         self.igor_thr_align_V=igor_thr_align_V
         self.igor_thr_align_D=igor_thr_align_D
         self.igor_thr_align_J=igor_thr_align_J
+	
+	#Some params for incomplete recomb
+	self.igor_best_align_only_v=igor_best_align_only_v
+	self.best_gene_only_v=igor_best_align_only_v
 
         self.igor_db = IgorSqliteDB()
         self.igor_db_bs = None
@@ -278,9 +284,11 @@ class IgorTask:
             "igor_fln_output_scenarios": self.igor_fln_output_scenarios,
             "igor_fln_output_coverage": self.igor_fln_output_coverage,
 			
-			"igor_thr_align_V": self.igor_thr_align_V,
+            "igor_thr_align_V": self.igor_thr_align_V,
             "igor_thr_align_D": self.igor_thr_align_D,
             "igor_thr_align_J": self.igor_thr_align_J,
+            "igor_best_align_only_v": self.igor_best_align_only_v,
+            "igor_best_gene_only_v": self.best_gene_only_v,
 
             "igor_fln_generated_realizations_werr": self.igor_fln_generated_realizations_werr,
             "igor_fln_generated_seqs_werr": self.igor_fln_generated_seqs_werr,
@@ -556,6 +564,8 @@ class IgorTask:
         cmd = cmd + " -align "
         # Add thresholds
         cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
+	cmd = cmd + " ---best_align_only " + str(self.igor_best_align_only_v)
+	cmd = cmd + " ---best_gene_only " + str(self.best_gene_only_v)
         cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
         cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
         cmd = cmd + command_from_dict_options(self.igor_align_dict_options)
