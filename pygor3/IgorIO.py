@@ -196,8 +196,7 @@ class IgorTask:
         self.igor_thr_align_J=igor_thr_align_J
 	
 	#Some params for incomplete recomb
-	self.igor_best_align_only_v=igor_best_align_only_v
-	self.best_gene_only_v=igor_best_align_only_v
+        self.igor_incomplete=igor_incomplete
 
         self.igor_db = IgorSqliteDB()
         self.igor_db_bs = None
@@ -565,8 +564,6 @@ class IgorTask:
         cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
         cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
         cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
-	if igortask.igor_incomplete:
-		cmd = cmd + " --not_infer d_gene"
         cmd = cmd + command_from_dict_options(self.igor_align_dict_options)
 	    
         #return cmd
@@ -602,6 +599,11 @@ class IgorTask:
             self.igor_output_dict_options["--scenarios"]['value'] = str(N_scenarios)
         self.igor_output_dict_options["--Pgen"]['active'] = True
         cmd = cmd + " -evaluate " + command_from_dict_options(self.igor_evaluate_dict_options)
+        
+        cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
+        cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
+        cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
+        
         cmd = cmd + " -output " + command_from_dict_options(self.igor_output_dict_options)
         # return cmd
         print(cmd)
@@ -695,6 +697,8 @@ class IgorTask:
         cmd = cmd + " -set_custom_model " + self.igor_model_parms_file + " " + self.igor_model_marginals_file
         # here the evaluation
         cmd = cmd + " -infer " #+ command_from_dict_options(self.igor_output_dict_options)
+        if self.igor_incomplete:
+                cmd = cmd + " --not_infer d_gene "
         #return cmd
         print(cmd)
         # FIXME: REALLY BIG FLAW USE DICTIONARY FOR THE SPECIE AND CHAIN
