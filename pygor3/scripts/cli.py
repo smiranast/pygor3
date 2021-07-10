@@ -200,7 +200,8 @@ def run_read_seqs(igor_read_seqs, igor_species, igor_chain, igor_model, igor_mod
 def run_align(igor_read_seqs,
               igor_species, igor_chain, igor_model, igor_model_path, igor_path_ref_genome, igor_wd, igor_batch,
               igor_fln_db,
-              fln_genomicVs, fln_genomicDs, fln_genomicJs, fln_V_gene_CDR3_anchors, fln_J_gene_CDR3_anchors):
+              fln_genomicVs, fln_genomicDs, fln_genomicJs, fln_V_gene_CDR3_anchors, fln_J_gene_CDR3_anchors,
+              igor_thr_align_V,igor_thr_align_D, igor_thr_align_J):
     """IGoR's call to aligns"""
     from pygor3 import IgorTask
     igortask = IgorTask()
@@ -278,9 +279,6 @@ def run_align(igor_read_seqs,
 @click.option("--Janchors", "fln_J_gene_CDR3_anchors", default=None,
               metavar="<J_gene_CDR3_anchors.csv>",
               help="Anchors filename of J gene")
-@click.option("--incomplete", "incomplete", default=False,
-              metavar="<bool>",
-              help="Train the model for incomplete D-J recombination")
 
 @click.option("--thr_V", "igor_thr_align_V", default=50,
               metavar="<int>",
@@ -318,7 +316,6 @@ def run_infer(igor_read_seqs, output_fln_prefix,
     igortask.fln_V_gene_CDR3_anchors = fln_V_gene_CDR3_anchors
     igortask.fln_J_gene_CDR3_anchors = fln_J_gene_CDR3_anchors
     
-    igortask.igor_incomplete=incomplete
     igortask.igor_thr_align_V=igor_thr_align_V
     igortask.igor_thr_align_D=igor_thr_align_D
     igortask.igor_thr_align_J=igor_thr_align_J
@@ -440,12 +437,26 @@ def run_infer(igor_read_seqs, output_fln_prefix,
                     help='Sets batchname to identify run. If not set random name is generated')
 @click.option("-D", "--set_database", "igor_fln_db", default=None, help="Igor database created with database script.")
 
+@click.option("--thr_V", "igor_thr_align_V", default=50,
+              metavar="<int>",
+              help="Threshold for V gene alignement")
+@click.option("--thr_D", "igor_thr_align_D", default=15,
+              metavar="<int>",
+              help="Threshold for D gene alignement")
+@click.option("--thr_J", "igor_thr_align_J", default=15,
+              metavar="<int>",
+              help="Threshold for J gene alignement")
+@click.option("--incomplete", "incomplete", default=False,
+              metavar="<bool>",
+              help="Train the model for incomplete D-J recombination")
+
 ############## NO COMMON options ##############
 @click.option("-i", "--input-sequences", "igor_read_seqs", default=None, help="Input sequences in FASTA, TXT or CSV formats.")
 @click.option("-o", "--output-prefix", "output_fln_prefix", default=None, help="Output prefix for database file a scenarios file.")
 def run_evaluate(igor_read_seqs, output_fln_prefix,
             igor_species, igor_chain, igor_model, igor_model_path, igor_path_ref_genome, igor_wd, igor_batch, igor_fln_db,
-            fln_genomicVs, fln_genomicDs, fln_genomicJs, fln_V_gene_CDR3_anchors, fln_J_gene_CDR3_anchors):
+            fln_genomicVs, fln_genomicDs, fln_genomicJs, fln_V_gene_CDR3_anchors, fln_J_gene_CDR3_anchors,
+            igor_thr_align_V,igor_thr_align_D, igor_thr_align_J, incomplete):
     """IGoR's call to evaluate input sequences"""
     ########################
     from pygor3 import IgorTask
@@ -484,7 +495,10 @@ def run_evaluate(igor_read_seqs, output_fln_prefix,
     igortask.igor_batchname = igor_batch
     igortask.igor_fln_db = igor_fln_db
 
-
+    igortask.igor_thr_align_V=igor_thr_align_V
+    igortask.igor_thr_align_D=igor_thr_align_D
+    igortask.igor_thr_align_J=igor_thr_align_J
+    igortask.igor_incomplete=incomplete
 
     Q_species_chain = (not (igor_species is None) and not (igor_chain is None))
     Q_model_files = (not (igor_model_parms is None) and not (igor_model_marginals is None))

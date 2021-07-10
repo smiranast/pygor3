@@ -4809,6 +4809,7 @@ class IgorModel:
 
         return V_segment_dict, VD_segment_dict, D_segment_dict, DJ_segment_dict, J_segment_dict
 
+
     def construct_sequence_VJ_from_realization_dict(self, scen_realization_dict):
         """return VJ sequence, which are the gene with the deletions of palindromic insertions"""
 
@@ -6330,11 +6331,11 @@ class IgorTask:
                 if os.path.isfile(self.genomes.fln_J_gene_CDR3_anchors):
                     cmd = cmd + " --J " + self.genomes.fln_J_gene_CDR3_anchors
 
+            cmd = cmd + " -align " + command_from_dict_options(self.igor_align_dict_options)
             cmd = cmd + " --V " + " ---thresh " + str(self.igor_thr_align_V)
             cmd = cmd + " --D " + " ---thresh " + str(self.igor_thr_align_D)
             cmd = cmd + " --J " + " ---thresh " + str(self.igor_thr_align_J)
-            cmd = cmd + " -align " + command_from_dict_options(self.igor_align_dict_options)
-
+            
 
         # cmd = self.igor_exec_path
         # cmd = cmd + " -set_wd " + self.igor_wd
@@ -6717,8 +6718,8 @@ class IgorTask:
                 # here the evaluation
                 cmd = cmd + " -infer "
 
-                if igortask.igor_incomplete:
-                    cmd = cmd + " --not_infer d_gene"
+                if self.igor_incomplete:
+                    cmd = cmd + " --not_infer d_gene v_3_del d_5_del vd_ins vd_dinucl"
 
                 cmd = cmd + " " + command_from_dict_options(self.igor_infer_dict_options)
 
