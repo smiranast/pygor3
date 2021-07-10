@@ -12,13 +12,18 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../.'))
+sys.path.insert(0, os.path.abspath('../../'))
+# sys.path.insert(0, os.path.abspath('.'))
+sys.path.append("source")
+sys.path.append(os.path.abspath('sphinxext'))
+# sys.path.append("../../pygor3/demo/notebooks")
+
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'pygor3'
-copyright = '2020, Carlos Olivares'
+copyright = '2021, Carlos Olivares'
 author = 'Carlos Olivares'
 
 
@@ -28,6 +33,10 @@ author = 'Carlos Olivares'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+        'myst_parser',
+        'sphinx.ext.autodoc',
+        'sphinx.ext.coverage', 'sphinx.ext.napoleon',
+        'sphinx_markdown_tables','nbsphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -38,12 +47,21 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# source_suffix = '.rst'
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'markdown',
+    '.md': 'markdown',
+}
+
+
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+# html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,

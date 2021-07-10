@@ -6,6 +6,7 @@ Created on Thu Oct  3 11:02:28 2019
 @author: alfaceor
 """
 
+_flag_verbose_sqlite=False
 import sqlite3
 import csv
 from Bio import SeqIO
@@ -22,14 +23,15 @@ class IgorSqliteDB:
     """
     Class to create and load table or database with sequences
     """
-    def __init__(self): #=None):
+    def __init__(self, igor_fln_db=None): #=None):
         # if flnIgorSQL is None:
         #     self.flnIgorSQL = "IgorDB.sql" # FIXME : VERY BAD WRAPP WITH INIT
         # else:
         #     self.flnIgorSQL = flnIgorSQL
+
         self.flnIgorSQL = "" # FIXME: this shouldn't be need it!
 
-        self.flnIgorDB  = "" #flnIgorDB
+        self.fln_db  = None #flnIgorDB
         
         self.flnIgorIndexedSeq = ""
         self.flnIgorIndexedCDR3 = ""
@@ -50,7 +52,10 @@ class IgorSqliteDB:
 
         self.flnIgorBestScenarios = ""
         self.flnIgorPgen = ""
-        
+
+        if igor_fln_db is not None:
+            self.fln_db = igor_fln_db
+
         self.conn               = None
 
         self.sql_BestScenarios_cols_list = None
@@ -64,7 +69,7 @@ class IgorSqliteDB:
         """
         Create a SQLite database with the flnIgorDB sql script.
         """
-        self.flnIgorDB = flnIgorDB
+        self.fln_db = flnIgorDB
         self.conn = None
         try:
             self.conn = sqlite3.connect(flnIgorDB)
@@ -83,7 +88,7 @@ class IgorSqliteDB:
         Connect (or create if not exits) with filename
         """
         cls = IgorSqliteDB()
-        cls.flnIgorDB = flnIgorDB
+        cls.fln_db = flnIgorDB
         cls.connect_db()
         return cls
 
@@ -92,8 +97,8 @@ class IgorSqliteDB:
         Connect (or create if not exits) to database
         """
         if flnIgorDB is not None:
-            self.flnIgorDB = flnIgorDB
-        self.conn = sqlite3.connect(self.flnIgorDB)
+            self.fln_db = flnIgorDB
+        self.conn = sqlite3.connect(self.fln_db)
 
     def close_db(self):
         self.conn.close()
@@ -106,7 +111,7 @@ class IgorSqliteDB:
         Execute sql script in the SQLite database .
         """
         try:
-            self.conn = sqlite3.connect(self.flnIgorDB)
+            self.conn = sqlite3.connect(self.fln_db)
             cur = self.conn.cursor()
             cur.executescript(str_query)
             self.conn.commit()
@@ -121,7 +126,7 @@ class IgorSqliteDB:
         Execute sql script in the SQLite database .
         """
         try:
-            self.conn = sqlite3.connect(self.flnIgorDB)
+            self.conn = sqlite3.connect(self.fln_db)
             cur = self.conn.cursor()
             cur.execute(str_query)
             # self.conn.commit()
@@ -131,14 +136,17 @@ class IgorSqliteDB:
             return record
             # self.conn.close()
         except sqlite3.Error as e:
-            print("sqlite3.ERROR : ", e)
+            # raise e
+            e_message = "sqlite3.ERROR : " + str(self.fln_db)
+            import sys
+            raise type(e)(str(e) + '\n' + e_message).with_traceback(sys.exc_info()[2])
 
     def execute_select_query_fetchone(self, str_query):
         """
         Execute sql script in the SQLite database .
         """
         try:
-            self.conn = sqlite3.connect(self.flnIgorDB)
+            self.conn = sqlite3.connect(self.fln_db)
             cur = self.conn.cursor()
             cur.execute(str_query)
             #self.conn.commit()
@@ -154,7 +162,7 @@ class IgorSqliteDB:
         # TODO: create database in base of IgorSQL scripts
         self.conn = None
         try:
-            self.conn = sqlite3.connect(self.flnIgorDB)
+            self.conn = sqlite3.connect(self.fln_db)
             qry = sqlcmd_ct['indexed_sequences']
             cur = self.conn.cursor()
             cur.executescript(qry)
@@ -372,7 +380,8 @@ class IgorSqliteDB:
         data = tuple([gene_id, str(bioRecord.description).strip(), str(bioRecord.seq)])
         try:
             cur = self.conn.cursor()
-            cur.execute(sql, data)
+            if data is not None:
+                cur.execute(sql, data)
             self.conn.commit()
         except sqlite3.Error as e:
             print(e)
@@ -406,21 +415,25 @@ class IgorSqliteDB:
         return (record)
 
     def write_IgorGeneTemplate_to_fasta(self, strGene, flnGeneTemplate, sep=";"):
-        print("Saving gene templates to file: ", flnGeneTemplate)
-        sqlSelect = "SELECT * FROM Igor"+strGene.upper()+"GeneTemplate;"
-        cur = self.conn.cursor()
-        cur.execute(sqlSelect)
-        records = cur.fetchall()
-        # str_file_header = "seq_index" + sep + "sequence" + "\n"
-        import pathlib
-        import os
-        directory_name = os.path.dirname(flnGeneTemplate)
-        pathlib.Path(directory_name).mkdir(parents=True, exist_ok=True)
-        with open(flnGeneTemplate, "w") as ofile:
-            # ofile.write(str_file_header)
-            for record in records:
-                ofile.write(">" + str(record[1]) + "\n")
-                ofile.write(str(record[2]) + "\n")
+        try:
+            print("Saving gene templates to file: ", flnGeneTemplate)
+            sqlSelect = "SELECT * FROM Igor"+strGene.upper()+"GeneTemplate;"
+            cur = self.conn.cursor()
+            cur.execute(sqlSelect)
+            records = cur.fetchall()
+            # str_file_header = "seq_index" + sep + "sequence" + "\n"
+            import pathlib
+            import os
+            directory_name = os.path.dirname(flnGeneTemplate)
+            pathlib.Path(directory_name).mkdir(parents=True, exist_ok=True)
+            with open(flnGeneTemplate, "w") as ofile:
+                # ofile.write(str_file_header)
+                for record in records:
+                    ofile.write(">" + str(record[1]) + "\n")
+                    ofile.write(str(record[2]) + "\n")
+
+        except Exception as e:
+            raise e
 
     def delete_IgorGeneTemplate_Tables(self):
         """
@@ -469,6 +482,8 @@ class IgorSqliteDB:
 
         try:
             data[0] = self.fetch_IgorGeneTemplate_By_gene_name(strGene, data[0])[0]
+        except TypeError:
+            pass
         except Exception as e:
             print("data : ", data)
             print("ERROR : ", e)
@@ -482,7 +497,7 @@ class IgorSqliteDB:
             elif len(data) == 3:
                 cur.execute(sql, data)
             else:
-                print(data)
+                pass #print(data)
 
         except sqlite3.Error as e:
             print(len(data), data)
@@ -497,8 +512,11 @@ class IgorSqliteDB:
         records = cur.fetchall()
         return (records)
 
-    def write_IgorGeneAnchors_to_CSV(self, strGene, flnGeneAnchors, sep=';'):
-        print("Saving IGoR's "+strGene+" gene anchors ")
+    def write_IgorGeneAnchors_to_CSV(self, strGene:str, flnGeneAnchors, sep=';'):
+        """Export Gene anchors to csv IGoR file
+        :param strGene: Gene letter
+        """
+        print("Saving IGoR's "+strGene+" gene anchors to file: ", flnGeneAnchors)
         sqlcmd_select_template = """
                     SELECT gene.gene_name,
                             anch.anchor_index, anch.function 
@@ -518,7 +536,7 @@ class IgorSqliteDB:
         directory_name = os.path.dirname(flnGeneAnchors)
         pathlib.Path(directory_name).mkdir(parents=True, exist_ok=True)
 
-        str_file_header = "gene;anchor_index;function\n"
+        str_file_header = "gene"+sep+"anchor_index"+sep+"function\n"
         with open(flnGeneAnchors, "w") as ofile:
             ofile.write(str_file_header)
             for record in records:
@@ -567,18 +585,18 @@ class IgorSqliteDB:
         J_records = self.fetch_IgorGenomicData_By_Gene("J")
 
         columnas = ['id', 'gene_name', 'sequence', 'anchor_index', 'function']
-        df_V = pd.DataFrame.from_records(V_records, columns=columnas)
+        df_V = pd.DataFrame.from_records(V_records, columns=columnas, index='id')
         genomic_data_dict["V"] = df_V
-        df_J = pd.DataFrame.from_records(J_records, columns=columnas)
+        df_J = pd.DataFrame.from_records(J_records, columns=columnas, index='id')
         genomic_data_dict["J"] = df_J
 
         try:
             D_records = self.fetch_IgorGenomicData_By_Gene("D")
             columnas = ['id', 'gene_name', 'sequence']
-            df_D = pd.DataFrame.from_records(D_records, columns=columnas)
+            df_D = pd.DataFrame.from_records(D_records, columns=columnas, index='id')
             genomic_data_dict["D"] = df_D
         except Exception as e:
-            print("No D genes were found in database ", self.flnIgorDB)
+            print("No D genes were found in database ", self.fln_db)
             print("WARNING: ", e)
             pass
 
@@ -1260,6 +1278,8 @@ class IgorSqliteDB:
             except sqlite3.Error as e:
                 print(e)
 
+        self.gen_IgorBestScenarios_cols_list()
+
     def insert_IgorBestScenarios_FromCSVline(self, cur, csvline):
         # sql = ''' INSERT INTO IgorBestScenarios({}) VALUES({}) '''
         csvline = csvline.replace('\n', '')
@@ -1285,9 +1305,10 @@ class IgorSqliteDB:
                 print(e)
                 pass
         except Exception as e:
-            print("ERROR: insert_IgorBestScenarios_FromCSVline")
-            print(csvlist)
-            print(e)
+            if _flag_verbose_sqlite:
+                print("ERROR: insert_IgorBestScenarios_FromCSVline")
+                print(csvlist)
+                print(e)
             pass
 
     def write_IgorBestScenarios_to_CSV(self, flnIgorBestScenarios, mdl=None, sep=';'):
@@ -1525,10 +1546,16 @@ class IgorSqliteDB:
     ###### return IGoR Model
     def get_IgorModel(self):
         from .IgorIO import IgorModel
-        mdl_parms = self.get_IgorModel_Parms()
-        mdl_marginals = self.get_IgorModel_Marginals()
-        mdl = IgorModel.load_from_parms_marginals_object( mdl_parms, mdl_marginals )
-        return mdl
+        try:
+            mdl_parms = self.get_IgorModel_Parms()
+            mdl_marginals = self.get_IgorModel_Marginals()
+            mdl = IgorModel.load_from_parms_marginals_object( mdl_parms, mdl_marginals )
+            return mdl
+        except Exception as e:
+            # raise e
+            e_message = "ERROR: IgorSqliteDB.get_IgorModel " + str(self.igor_fln_db)
+            import sys
+            raise type(e)(str(e) + '\n' + e_message).with_traceback(sys.exc_info()[2])
 
     def get_IgorModel_Marginals(self):
         print("-"*5, "Marginals", "-"*5)
@@ -1591,50 +1618,60 @@ class IgorSqliteDB:
         return [colname[0] for colname in col_names]
 
     def get_IgorModel_Parms(self):
-        from .IgorIO import IgorModel_Parms
-        mdl_parms = IgorModel_Parms()
-        # tb_IgorMP_Event_list_columns = self.execute_select_query(
-        #     "SELECT name FROM pragma_table_info('IgorMP_Event_list');")
-        # tb_IgorMP_Event_list_columns = [aa[0] for aa in tb_IgorMP_Event_list_columns]
-        # event_type, seq_type, seq_side, priority, nickname
+        try:
+            from .IgorIO import IgorModel_Parms
+            mdl_parms = IgorModel_Parms()
+            # tb_IgorMP_Event_list_columns = self.execute_select_query(
+            #     "SELECT name FROM pragma_table_info('IgorMP_Event_list');")
+            # tb_IgorMP_Event_list_columns = [aa[0] for aa in tb_IgorMP_Event_list_columns]
+            # event_type, seq_type, seq_side, priority, nickname
 
-        mdl_parms.Event_list = self.get_Event_list()
-        dict_nickname_name = mdl_parms.get_event_dict('nickname', 'name')
-        mdl_parms.Edges = list()
-        for edge in self.get_Edges():
-            mdl_parms.Edges.append( [dict_nickname_name[edge[0]], dict_nickname_name[edge[1]] ])
+            mdl_parms.Event_list = self.get_Event_list()
+            dict_nickname_name = mdl_parms.get_event_dict('nickname', 'name')
+            mdl_parms.Edges = list()
+            for edge in self.get_Edges():
+                mdl_parms.Edges.append( [dict_nickname_name[edge[0]], dict_nickname_name[edge[1]] ])
 
-        mdl_parms.ErrorRate_dict = self.get_ErrorRate_dict()
+            mdl_parms.ErrorRate_dict = self.get_ErrorRate_dict()
 
-        mdl_parms.gen_EventDict_DataFrame()
-        return mdl_parms
+            mdl_parms.gen_EventDict_DataFrame()
+            return mdl_parms
+        except Exception as e:
+            e_message = "ERROR: IgorSqliteDB.get_IgorModel_Parms " + str(self.igor_fln_db)
+            import sys
+            raise type(e)(str(e) + '\n' + e_message).with_traceback(sys.exc_info()[2])
 
     def get_Event_list(self):
-        from .IgorIO import IgorRec_Event
-        from .IgorIO import IgorEvent_realization
-        sql_cmd = "SELECT event_type, seq_type, seq_side, priority, nickname, realizations_table FROM IgorMP_Event_list;"
-        Event_list = list()
-        for rec in self.execute_select_query(sql_cmd):
-            event = IgorRec_Event(*rec[:-1])
-            str_realization_table = rec[-1]
-            realization_dbrecords = self.execute_select_query("SELECT * FROM " + str_realization_table + ";")
-            for realization_dbrec in realization_dbrecords:
-                realization = IgorEvent_realization()
-                if event.event_type == "GeneChoice":
-                    realization.id = int(realization_dbrec[0])
-                    realization.value = realization_dbrec[1]
-                    realization.name = realization_dbrec[2]
-                elif event.event_type == "DinucMarkov":
-                    realization.id = int(realization_dbrec[0])
-                    realization.value = realization_dbrec[1]
-                else:
-                    realization.id = int(realization_dbrec[0])
-                    realization.value = int(realization_dbrec[1])
-                event.add_realization(realization)
-            #print(event)
-            Event_list.append(event)
+        try:
+            from .IgorIO import IgorRec_Event
+            from .IgorIO import IgorEvent_realization
+            sql_cmd = "SELECT event_type, seq_type, seq_side, priority, nickname, realizations_table FROM IgorMP_Event_list;"
+            Event_list = list()
+            for rec in self.execute_select_query(sql_cmd):
+                event = IgorRec_Event(*rec[:-1])
+                str_realization_table = rec[-1]
+                realization_dbrecords = self.execute_select_query("SELECT * FROM " + str_realization_table + ";")
+                for realization_dbrec in realization_dbrecords:
+                    realization = IgorEvent_realization()
+                    if event.event_type == "GeneChoice":
+                        realization.id = int(realization_dbrec[0])
+                        realization.value = realization_dbrec[1]
+                        realization.name = realization_dbrec[2]
+                    elif event.event_type == "DinucMarkov":
+                        realization.id = int(realization_dbrec[0])
+                        realization.value = realization_dbrec[1]
+                    else:
+                        realization.id = int(realization_dbrec[0])
+                        realization.value = int(realization_dbrec[1])
+                    event.add_realization(realization)
+                #print(event)
+                Event_list.append(event)
 
-        return Event_list
+            return Event_list
+        except Exception as e:
+            e_message = "ERROR: IgorSqliteDB.get_Event_list " + str(self.igor_fln_db)
+            import sys
+            raise type(e)(str(e) + '\n' + e_message).with_traceback(sys.exc_info()[2])
 
     def get_Edges(self):
         sql_cmd = "SELECT parent_event, child_event FROM IgorMP_Edges;"
@@ -1645,7 +1682,8 @@ class IgorSqliteDB:
         ErrorRate_dict = dict()
         sql_cmd = "SELECT error_type, error_values FROM IgorMP_ErrorRate;"
         ErrorRate_record = self.execute_select_query(sql_cmd)[0]
-        print("ErrorRate_record : ", ErrorRate_record)
+        if _flag_verbose_sqlite:
+            print("ErrorRate_record : ", ErrorRate_record)
         ErrorRate_dict['error_type'] = ErrorRate_record[0]
         ErrorRate_dict['error_values'] = ErrorRate_record[1]
         return ErrorRate_dict

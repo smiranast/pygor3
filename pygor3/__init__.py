@@ -1,10 +1,10 @@
-#      Author: Quentin Marcou & Carlos Olivares
+#      Author: Carlos Olivares & Quentin Marcou
 #
 #  This source code is distributed as part of the IGoR software.
 #  IGoR (Inference and Generation of Repertoires) is a versatile software to
 #  analyze and model immune receptors generation, selection, mutation and all
 #  other processes.
-#   Copyright (C) 2017  Quentin Marcou
+#   Copyright (C) 2021 Carlos Olivares
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -46,32 +46,19 @@
 
 # __version__ =
 
-class RcParams(dict):
-    #validate = { key : converter
-    #            for key, (default, converter) in defaultParams.items()}
-    def __init__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
 
-    def __setitem__(self, key, val):
-        #try:
-        #    cval = self.validate[key](val)
-        #except ValueError as ve:
-        #    raise ValueError(f"Key {key} : {ve}") from None
-        dict.__setitem__(self, key, val)
-    
-    def __getitem__(self, key):
-        return dict.__getitem__(self, key)
+from pkg_resources import get_distribution, DistributionNotFound
 
-defaultParams = {
-    # default system paths
-    'paths.igor_prefix' : None, #"/home/alfaceor/.local",
-    'paths.igor_exec' : None, #"/home/alfaceor/.local/bin/igor",
-    'paths.igor_data' : None, #"",
-    'paths.igor_models': None, #"/home/alfaceor/.local/share/igor/models",
-    'paths.igor_src' : None #""
-}
+try:
+    __version__ = get_distribution("pygor3").version
+except DistributionNotFound:
+     # package is not installed
+    pass
 
-rcParams = RcParams(defaultParams)
+
+
+from .utils import rcParams
+
 
 import pkg_resources
 
@@ -80,6 +67,9 @@ import pkg_resources
 sql_path = 'IgorDB.sql'  #
 sql_filepath = pkg_resources.resource_filename(__name__, sql_path)
 
+from .config import create_config_files, load_config_files
+
+from .IgorDictionaries import *
 #from .IgorModel import *
 from .IgorIO import *
 from .IgorSqliteDB import *

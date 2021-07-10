@@ -13,10 +13,12 @@ setuptools.setup(
     author_email="carlos.olivares@phys.ens.fr",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version='0.0.5',
+    # version='0.0.5.dev1',
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     description='Python package to manipulate and run IGoR data files',
     license="GNU GPLv3",
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     install_requires = [
         "pandas",
         #"holoviz",
@@ -28,11 +30,12 @@ setuptools.setup(
         "networkx",
         "requests",
         "matplotlib",
-        "airr"
+        "airr",
+        "appdirs"
     ],
     packages=setuptools.find_packages(),
     package_data = {
-            'pygor3': ['demo/data/IgL/*.txt'],
+            'pygor3': ['demo/data/IgL/*.txt', "config.json"],
             # 'pygor3.demo.data': ['*'],
             # 'pygor3.demo.data.IgL': ['*.txt']
             },
